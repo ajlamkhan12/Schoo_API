@@ -1,0 +1,19 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/Data/bin/Debug/net8.0
+/Data/obj
+/DbModels/obj
+/DbModels/bin/Debug/net8.0
+/School_IServices/bin/Debug/net8.0
+/School_IServices/obj
+/School_Management_System/bin/Debug/net8.0
+/School_Management_System/obj
+/School_Mapper/bin/Debug/net8.0
+/School_Mapper/obj
+/School_Services/bin/Debug/net8.0
+/School_Services/obj
+/School_View_Models/bin/Debug/net8.0
+/School_View_Models/obj
