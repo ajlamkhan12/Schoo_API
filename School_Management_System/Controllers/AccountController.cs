@@ -63,7 +63,8 @@ namespace School_Management_System.Controllers
                 {
                     return Conflict();
                 }
-                if(await _accountService.Register(registerModel))
+                var user = await _accountService.Register(registerModel);
+                if (user.Id > 0)
                 {
                     string token = _accountService.GenerateJwtToken(registerModel.Name, registerModel.Email);
                     return Ok (new LoginResponse
@@ -72,6 +73,7 @@ namespace School_Management_System.Controllers
 
                         User = new LoginViewModel
                         {
+                            UserId = user.Id,
                             Name = registerModel.UserName,
                             Role = "admin",
                             Email = registerModel.Email

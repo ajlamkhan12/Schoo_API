@@ -36,6 +36,7 @@ namespace School_Services
                 Token = token,
                 User = new LoginViewModel
                 {
+                    UserId = user.Id,
                     Name = request.Username,
                     Role = "admin",
                     Email = "admin@gmail.com"
@@ -61,12 +62,13 @@ namespace School_Services
             }
         }
 
-        public async Task<bool> Register(UserViewModel registerModel)
+        public async Task<UserViewModel> Register(UserViewModel registerModel)
         {
             var user = _mapper.Map<User>(registerModel);
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
-            return true;
+            registerModel = _mapper.Map<UserViewModel>(user);
+            return registerModel;
         }
 
         public string GenerateJwtToken(string name, string email)

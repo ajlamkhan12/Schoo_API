@@ -3,6 +3,7 @@ namespace School_View_Models
 {
     public class LoginViewModel
     {
+        public int UserId { get; set; }
         public string Name { get; set; }
         public string Role { get; set; }
         public string Email { get; set; }

@@ -18,6 +18,7 @@ namespace School_Mapper
             CreateMap<User, UserViewModel>().ReverseMap();
             CreateMap<Student, StudentModel>().ReverseMap();
             CreateMap<Teacher, TeacherViewModel>().ReverseMap();
+            CreateMap<Chat, ChatViewModel>().ReverseMap();
         }
     }
 }
