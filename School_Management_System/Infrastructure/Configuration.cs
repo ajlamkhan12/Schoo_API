@@ -26,7 +26,7 @@ namespace School_Management_System.Infrastructure
                            ValidateAudience = true,
                            ValidateLifetime = true,
                            ValidateIssuerSigningKey = true,
-                   
+
                            ValidIssuer = configuration["Jwt:Issuer"],
                            ValidAudience = configuration["Jwt:Audience"],
                            IssuerSigningKey = new SymmetricSecurityKey(
@@ -35,9 +35,10 @@ namespace School_Management_System.Infrastructure
                            ClockSkew = TimeSpan.Zero
                        };
                    });
-                           services.AddControllers();
-                           services.AddAuthorization();
-                   
+            services.AddControllers();
+            services.AddSignalR();
+            services.AddAuthorization();
+
         }
     }
 }

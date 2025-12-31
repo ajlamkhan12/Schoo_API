@@ -6,13 +6,15 @@
         {
             services.AddCors(options =>
             {
-                options.AddPolicy("CorsApp", builder =>
-                {
-                    builder
-                        .WithOrigins("*")
-                        .AllowAnyMethod()
-                        .AllowAnyHeader();
-                });
+                options.AddPolicy("AllowAngular",
+                    policy =>
+                    {
+                        policy
+                            .WithOrigins("http://localhost:4200")
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowCredentials();
+                    });
             });
         }
 
