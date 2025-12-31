@@ -26,7 +26,8 @@ namespace School_View_Models
 
         public bool? IsViewed { get; set; }
 
-        public string? Media_Url { get; set; }
+        public string Media_Url { get; set; }
+        public string SenderName { get; set; }
 
         //public bool IsDeleted { get; set; } = false;
 

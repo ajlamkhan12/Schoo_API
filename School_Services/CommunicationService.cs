@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using School_IServices;
 using School_View_Models;
+using System;
 
 
 namespace School_Services
@@ -71,8 +72,18 @@ namespace School_Services
 
         public async Task<List<ChatViewModel>> AddChat(ChatViewModel model)
         {
-            var chat = _mapper.Map<Chat>(model);
-            await _context.Chats.AddAsync(chat);
+            var chat = new Chat
+            {
+                SenderId = model.SenderId,
+                RecieverId = model.RecieverId > 0 ? model.RecieverId :  null, // null or value
+                GroupId = model.GroupId > 0 ? model.GroupId : null,
+                MessageType = 1,
+                Content = model.Content,
+                IsViewed = false,
+                CreatedBy = model.SenderId
+            };
+
+            _context.Chats.Add(chat);
             await _context.SaveChangesAsync();
             if (model.GroupId > 0)
             {
@@ -88,11 +99,26 @@ namespace School_Services
             var chats = await _context.Chats
                 .Where(c =>
                     (c.SenderId == senderId && c.RecieverId == receiverId) ||
-                    (c.SenderId == receiverId && c.RecieverId == senderId))
+                    (c.SenderId == receiverId && c.RecieverId == senderId)).Include(x=>x.Sender)
                .ToListAsync();
             if (chats.Any())
             {
-                return (_mapper.Map<List<ChatViewModel>>(chats));
+                var messages = chats.Select(c => new ChatViewModel
+                {
+                    Id = c.Id,
+                    SenderId = c.SenderId,
+                    RecieverId = c.RecieverId,
+                    GroupId = c.GroupId,
+                    MessageType = c.MessageType,
+                    Reply_To_Message_Id = c.Reply_To_Message_Id,
+                    Content = c.Content,
+                    IsViewed = c.IsViewed,
+                    Media_Url = c.Media_Url,
+                    SenderName = c.Sender?.Name,
+                    CreatedOn = c.CreatedOn
+                }).ToList();
+                return messages;
+                //return (_mapper.Map<List<ChatViewModel>>(chats));
             }
             return new List<ChatViewModel>();
 
@@ -106,7 +132,22 @@ namespace School_Services
                 .ToListAsync();
             if (groupChats.Any())
             {
-                return (_mapper.Map<List<ChatViewModel>>(groupChats));
+                var messages = groupChats.Select(c => new ChatViewModel
+                {
+                    Id = c.Id,
+                    SenderId = c.SenderId,
+                    RecieverId = 0,
+                    GroupId = c.GroupId,
+                    MessageType = c.MessageType,
+                    Reply_To_Message_Id = c.Reply_To_Message_Id,
+                    Content = c.Content,
+                    IsViewed = c.IsViewed,
+                    Media_Url = c.Media_Url,
+                    SenderName = c.Sender?.Name,
+                    CreatedOn = c.CreatedOn
+                }).ToList();
+                return messages;
+                //return (_mapper.Map<List<ChatViewModel>>(chats));
             }
             return new List<ChatViewModel>();
         }
