@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using School_IServices;
 using School_View_Models;
 
+
 namespace School_Services
 {
     public class CommunicationService : ICommunicationService
@@ -36,7 +37,7 @@ namespace School_Services
                     {
                         Id = user.Id,
                         Name = user.Name,
-                        LastMessage = "Test", /*await GetLastMessage(userId, user.Id)*/
+                        LastMessage = await GetLastMessage(userId, user.Id),
                         IsGroup = false
                     });
                 }
@@ -55,7 +56,7 @@ namespace School_Services
                     {
                         Id = gm.Group.Id,
                         Name = gm.Group.Title,
-                        LastMessage = "Test", /* await GetLastGroupMessage(gm.Group.Id)*/
+                        LastMessage = await GetLastGroupMessage(gm.Group.Id),
                         IsGroup = true
                     });
                 }
@@ -101,7 +102,7 @@ namespace School_Services
         {
             var groupChats = await _context.Chats
                 .Where(c => c.GroupId == groupId)
-                .OrderByDescending(c => c.CreatedOn)
+                //.OrderByDescending(c => c.CreatedOn)
                 .ToListAsync();
             if (groupChats.Any())
             {
@@ -110,6 +111,41 @@ namespace School_Services
             return new List<ChatViewModel>();
         }
 
+        public async Task<bool> AddGroup(GroupViewModel groupViewModel)
+        {
+            try
+            {
+                var group = new DbModels.Group
+                {
+                    Title = groupViewModel.Title,
+                    Admin = groupViewModel.Admin.ToString(),
+                    CreatedBy = groupViewModel.Admin,
+                    Group_Image_Url=groupViewModel.Group_Image_Url
+                };
+                await _context.Groups.AddAsync(group);  
+                await _context.SaveChangesAsync();
+                foreach (var member in groupViewModel.Members)
+                {
+                    var groupMember = new GroupMember
+                    {
+                        GroupId = group.Id,
+                        MemberId = member, // Convert.ToInt32( member),
+                        CreatedBy = groupViewModel.Admin,
+                        Group_Image_Url = groupViewModel.Group_Image_Url
+                    };
+                    await _context.GroupMembers.AddAsync(groupMember);
+                    await _context.SaveChangesAsync();
+                }
+                return true;
+                
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        #region Privtae
 
         private async Task<string> GetLastMessage(int senderId, int receiverId)
         {
@@ -129,8 +165,6 @@ namespace School_Services
                 .Select(c => c.Content)
                 .FirstOrDefaultAsync() ?? string.Empty;
         }
-
-
-
+        #endregion
     }
 }

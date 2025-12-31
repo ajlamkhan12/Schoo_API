@@ -65,5 +65,23 @@ namespace School_Management_System.Controllers
                 throw;
             }
         }
+
+        [HttpPost("group")]
+        public async Task<IActionResult> AddGroup([FromBody] GroupViewModel model)
+        {
+            try
+            {
+              if(await _communicationService.AddGroup(model))
+                {
+                    return Ok(await _communicationService.GetContacts(model.Admin));
+                }
+                
+                return BadRequest();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
     }
 }
