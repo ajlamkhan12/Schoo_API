@@ -118,7 +118,6 @@ namespace School_Services
                     CreatedOn = c.CreatedOn
                 }).ToList();
                 return messages;
-                //return (_mapper.Map<List<ChatViewModel>>(chats));
             }
             return new List<ChatViewModel>();
 
@@ -127,7 +126,7 @@ namespace School_Services
         public async Task<List<ChatViewModel>> GetGroupChat(int groupId)
         {
             var groupChats = await _context.Chats
-                .Where(c => c.GroupId == groupId)
+                .Where(c => c.GroupId == groupId).Include(x=>x.Sender)
                 //.OrderByDescending(c => c.CreatedOn)
                 .ToListAsync();
             if (groupChats.Any())
@@ -147,7 +146,6 @@ namespace School_Services
                     CreatedOn = c.CreatedOn
                 }).ToList();
                 return messages;
-                //return (_mapper.Map<List<ChatViewModel>>(chats));
             }
             return new List<ChatViewModel>();
         }

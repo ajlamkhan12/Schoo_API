@@ -93,7 +93,7 @@ namespace School_Services
                      issuer: _config["Jwt:Issuer"],
                      audience: _config["Jwt:Audience"],
                      claims: claims,
-                     expires: DateTime.UtcNow.AddMinutes(
+                     expires: DateTime.UtcNow.AddHours(
                          Convert.ToDouble(_config["Jwt:ExpiryMinutes"])
                      ),
                      signingCredentials: creds
