@@ -94,6 +94,7 @@ namespace School_Services
                 return await GetOneOnOneChat(model.SenderId, model.RecieverId.Value);
             }
         }
+
         public async Task<List<ChatViewModel>> GetOneOnOneChat(int senderId, int receiverId)
         {
             var chats = await _context.Chats

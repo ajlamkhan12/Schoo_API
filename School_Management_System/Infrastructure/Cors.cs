@@ -4,19 +4,15 @@
     {
         public static void AddCorsService(this IServiceCollection services)
         {
-            services.AddCors(options =>
+            services.AddCors(opt =>
             {
-                options.AddPolicy("AllowAngular",
-                    policy =>
-                    {
-                        policy
-                            .WithOrigins("http://localhost:4200")
-                            .AllowAnyHeader()
-                            .AllowAnyMethod()
-                            .AllowCredentials();
-                    });
+                opt.AddPolicy("cors",
+                    p => p.AllowAnyHeader()
+                          .AllowAnyMethod()
+                          .AllowCredentials()
+                          .SetIsOriginAllowed(_ => true));
             });
-        }
 
+        }
     }
 }

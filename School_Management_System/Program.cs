@@ -1,6 +1,7 @@
 using Data.Data;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
+using School_Management_System;
 using School_Management_System.Infrastructure;
 using School_Mapper;
 using School_Services;
@@ -32,9 +33,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("AllowAngular");
+app.UseCors("cors");
+app.MapHub<ChatHub>("/chatHub");
+app.MapHub<CallHub>("/callHub");
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapHub<ChatHub>("/chatHub");
+
 app.Run();
