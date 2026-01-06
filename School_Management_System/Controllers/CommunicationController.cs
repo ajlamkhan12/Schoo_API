@@ -71,7 +71,7 @@ namespace School_Management_System.Controllers
         {
             try
             {
-              if(await _communicationService.AddGroup(model))
+              if(await _communicationService.AddGroup(model) > 0)
                 {
                     return Ok(await _communicationService.GetContacts(model.Admin));
                 }

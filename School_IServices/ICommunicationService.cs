@@ -9,6 +9,8 @@ namespace School_IServices
         Task<List<ChatViewModel>> GetOneOnOneChat(int senderId, int receiverId);
         Task<List<ChatViewModel>> GetGroupChat(int groupId);
         Task<List<ChatViewModel>> AddChat(ChatViewModel model);
-        Task<bool> AddGroup(GroupViewModel groupViewModel);
+        Task<int> AddGroup(GroupViewModel groupViewModel);
+        Task<List<int>> GetGroupMembers(int groupId);
+        Task<bool> RemoveMemberFromGroupAsync(int groupId, int userId);
     }
 }

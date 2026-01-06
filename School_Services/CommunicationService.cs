@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using School_IServices;
 using School_View_Models;
-using System;
 
 
 namespace School_Services
@@ -151,7 +150,7 @@ namespace School_Services
             return new List<ChatViewModel>();
         }
 
-        public async Task<bool> AddGroup(GroupViewModel groupViewModel)
+        public async Task<int> AddGroup(GroupViewModel groupViewModel)
         {
             try
             {
@@ -176,13 +175,48 @@ namespace School_Services
                     await _context.GroupMembers.AddAsync(groupMember);
                     await _context.SaveChangesAsync();
                 }
-                return true;
+                return group.Id;
                 
             }
             catch (Exception ex)
             {
-                return false;
+                return 0;
             }
+        }
+
+        public async Task<bool> RemoveMemberFromGroupAsync(int groupId, int userId)
+        {
+            // Check if the member exists in the group
+            var groupMember = await _context.GroupMembers
+                .FirstOrDefaultAsync(gm => gm.GroupId == groupId && gm.MemberId == userId);
+
+            if (groupMember == null)
+            {
+                return false; // Member not found
+            }
+
+            // Remove the member
+            _context.GroupMembers.Remove(groupMember);
+
+            // Save changes to the database
+            await _context.SaveChangesAsync();
+
+            return true; // Member successfully removed
+        }
+
+        public async Task<List<int>> GetGroupMembers(int groupId)
+        {
+            try
+            {
+                var memberIds = await _context.GroupMembers.Where(x=>x.GroupId == groupId).Select(x => x.MemberId).ToListAsync();
+                return memberIds;
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+
         }
 
         #region Privtae
@@ -197,6 +231,7 @@ namespace School_Services
                 .Select(c => c.Content)
                 .FirstOrDefaultAsync() ?? string.Empty;
         }
+
         private async Task<string> GetLastGroupMessage(int groupId)
         {
             return await _context.Chats

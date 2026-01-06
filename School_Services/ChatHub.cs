@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using School_IServices;
 using School_View_Models;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 
 namespace School_Services
 {
@@ -9,6 +9,11 @@ namespace School_Services
 
     public class ChatHub : Hub
     {
+        private readonly ICommunicationService _communicationService;
+        public ChatHub(ICommunicationService communicationService)
+        {
+                _communicationService = communicationService;
+        }
         public override async Task OnConnectedAsync()
         {
             var userId = Context.GetHttpContext()?.Request.Query["userId"].ToString();
@@ -37,44 +42,80 @@ namespace School_Services
         // 1-to-1 Message
         public async Task SendPrivateMessage(string toUserId, string content)
         {
-            try
+            var senderUserId = Context.GetHttpContext()?.Request.Query["userId"];
+            if (string.IsNullOrEmpty(senderUserId))
+                return;
+
+            var message = new ChatViewModel
             {
-                var senderUserId = Context.GetHttpContext()?.Request.Query["userId"].ToString();
-                if (string.IsNullOrEmpty(senderUserId)) throw new Exception("Sender userId is missing");
+                SenderId = int.Parse(senderUserId),
+                RecieverId = int.Parse(toUserId),
+                Content = content,
+                MessageType = 1,
+                IsGroup = false,
+                CreatedOn = DateTime.UtcNow,
+                SenderName = "Ajlam Khan"
+            };
 
-                if (!UserConnectionManager.Users.TryGetValue(senderUserId.ToString(), out var connId))
-                    throw new Exception("Recipient not connected");
+            // 🔹 SAVE TO DB
+           await  _communicationService.AddChat(new ChatViewModel
+            {
+                SenderId = message.SenderId,
+                RecieverId = message.RecieverId,
+                Content = message.Content,
+                MessageType = 1,
+                IsGroup = false,
+                CreatedDate = DateTime.UtcNow
+            });
 
-                var message = new ChatViewModel
-                {
-                    Id = 0,
-                    SenderId = int.Parse(senderUserId),
-                    RecieverId = int.Parse(toUserId),
-                    MessageType = 1,
-                    Content = content,
-                    IsViewed = false,
-                    CreatedOn = DateTime.UtcNow,
-                    SenderName = "Ajlam Khan"
-                };
+            // 🔹 SEND TO SENDER (REAL-TIME)
+            await Clients.Caller.SendAsync("ReceiveMessage", message);
 
+            // 🔹 SEND TO RECEIVER (REAL-TIME)
+            if (UserConnectionManager.Users.TryGetValue(toUserId.ToString(), out var connId))
+            {
                 await Clients.Client(connId)
-                             .SendAsync("ReceiveMessage", message);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("SendPrivateMessage Error: " + ex.Message);
-                throw;
+                    .SendAsync("ReceiveMessage", message);
             }
         }
 
 
 
+
         // Create Group
-        public async Task CreateGroup(string groupName)
+        public async Task CreateGroup(GroupViewModel model)
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
-            await Clients.Group(groupName)
-                .SendAsync("GroupCreated", groupName);
+            try
+            {
+               var groupId =  await _communicationService.AddGroup(model);
+                if (groupId > 0)
+                {
+                    // 🔹 4. Add ONLINE users to SignalR group
+                    foreach (var userId in model.Members.Append(model.Admin))
+                    {
+                        if (UserConnectionManager.Users
+                            .TryGetValue(userId.ToString(), out var connectionId))
+                        {
+                            await Groups.AddToGroupAsync(connectionId, groupId.ToString());
+                        }
+                    }
+
+                    // 🔹 5. Notify group members
+                    await Clients.Group(groupId.ToString())
+                        .SendAsync("GroupCreated", new
+                        {
+                            GroupId = groupId,
+                            model.Title,
+                            model.Group_Image_Url,
+                            Admin = model.Admin,
+                            Members = model.Members
+                        });
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new HubException(ex.Message);
+            }
         }
 
         // Join Group
@@ -86,40 +127,79 @@ namespace School_Services
         }
 
         // Leave Group
-        public async Task LeaveGroup(string groupName)
+        public async Task LeaveGroup(int groupId)
         {
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
-            await Clients.Group(groupName)
-                .SendAsync("UserLeft", groupName);
+            var userId = Context.GetHttpContext()?.Request.Query["userId"];
+            if (string.IsNullOrEmpty(userId))
+                throw new HubException("UserId missing");
+
+
+            var result = await _communicationService.RemoveMemberFromGroupAsync(groupId,int.Parse(userId.Value));
+            await Groups.RemoveFromGroupAsync(
+                Context.ConnectionId,
+                groupId.ToString()
+            );
+
+            await Clients.Group(groupId.ToString())
+                .SendAsync("UserLeft", new
+                {
+                    GroupId = groupId,
+                    UserId = int.Parse(userId)
+                });
         }
 
-        // Group Message
+
+
         public async Task SendGroupMessage(int groupId, string content)
         {
-            var senderUserId = Context.GetHttpContext()
-                                       ?.Request.Query["userId"]
-                                       .ToString();
+            var senderUserId = Context.GetHttpContext()?.Request.Query["userId"];
+            if (string.IsNullOrEmpty(senderUserId))
+                return;
 
-            // Optional: check if the sender is part of the group
-            // You can implement your own GroupManager to track group memberships
+            var senderId = int.Parse(senderUserId);
 
+            // 🔹 CREATE MESSAGE MODEL
             var message = new ChatViewModel
             {
-                Id = 0, // DB generated later
-                SenderId = int.Parse(senderUserId),
+                SenderId = senderId,
                 GroupId = groupId,
-                MessageType = 2, // assuming 2 means group message
                 Content = content,
+                MessageType = 2,  
+                IsGroup = true,
                 IsViewed = false,
                 CreatedOn = DateTime.UtcNow,
-                SenderName = "Ajlam Khan" // fetch from DB if needed
+                SenderName = "Ajlam Khan"
             };
 
-            // Send to all clients in the group
-            await Clients.Group(groupId.ToString())
-                         .SendAsync("ReceiveMessage", message);
-        }
+            // 🔹 SAVE TO DB
+            await _communicationService.AddChat(new ChatViewModel
+            {
+                SenderId = senderId,
+                GroupId = groupId,
+                Content = content,
+                MessageType = 2,
+                IsGroup = true,
+                CreatedDate = DateTime.UtcNow
+            });
 
+            // 🔹 SEND TO SENDER (IMMEDIATE UI UPDATE)
+            await Clients.Caller.SendAsync("ReceiveMessage", message);
+
+            // 🔹 GET ALL GROUP MEMBERS FROM DB
+            var groupMembers = await _communicationService.GetGroupMembers(groupId);
+            // Expected: List<int> of UserIds
+
+            // 🔹 SEND TO EACH ONLINE MEMBER (EXCEPT SENDER)
+            foreach (var memberUserId in groupMembers)
+            {
+                if (memberUserId == senderId) continue;
+
+                if (UserConnectionManager.Users.TryGetValue(memberUserId.ToString(), out var connId))
+                {
+                    await Clients.Client(connId).SendAsync("ReceiveMessage", message);
+                }
+            }
+        }
 
     }
     public static class UserConnectionManager
