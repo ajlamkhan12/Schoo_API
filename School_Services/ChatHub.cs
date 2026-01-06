@@ -5,63 +5,51 @@ using System.Collections.Generic;
 
 namespace School_Services
 {
-    //public class ChatHub : Hub
-    //{
-    //    public async Task SendMessage(ChatViewModel message)
-    //    {
-    //        await Clients.All.SendAsync("ReceiveMessage", message);
-    //    }
-
-    //    public async Task JoinGroup(string groupId)
-    //    {
-    //        await Groups.AddToGroupAsync(Context.ConnectionId, groupId);
-    //    }
-
-    //    public async Task SendGroupMessage(string groupId, ChatViewModel message)
-    //    {
-    //        await Clients.Group(groupId).SendAsync("ReceiveMessage", message);
-    //    }
-    //}
-
 
 
     public class ChatHub : Hub
     {
-        public override Task OnConnectedAsync()
+        public override async Task OnConnectedAsync()
         {
             var userId = Context.GetHttpContext()?.Request.Query["userId"].ToString();
-            if (!string.IsNullOrEmpty(userId))
-                UserConnectionManager.Users[userId] = Context.ConnectionId;
 
-            return base.OnConnectedAsync();
+            if (!string.IsNullOrEmpty(userId))
+            {
+                UserConnectionManager.Users[userId] = Context.ConnectionId;
+            }
+
+            await base.OnConnectedAsync();
         }
 
-        //public override Task OnDisconnectedAsync(Exception? exception)
-        //{
-        //    var userId = Context.GetHttpContext()?.Request.Query["userId"].ToString();
-        //    if (!string.IsNullOrEmpty(userId))
-        //        UserConnectionManager.Users.Remove(userId);
+        public override async Task OnDisconnectedAsync(Exception? exception)
+        {
+            var userId = Context.GetHttpContext()?.Request.Query["userId"].ToString();
 
-        //    return base.OnDisconnectedAsync(exception);
-        //}
+            if (!string.IsNullOrEmpty(userId))
+            {
+                UserConnectionManager.Users.TryRemove(userId, out _);
+            }
+
+            await base.OnDisconnectedAsync(exception);
+        }
 
 
         // 1-to-1 Message
-        public async Task SendPrivateMessage(int toUserId, string content)
+        public async Task SendPrivateMessage(string toUserId, string content)
         {
             try
             {
                 var senderUserId = Context.GetHttpContext()?.Request.Query["userId"].ToString();
                 if (string.IsNullOrEmpty(senderUserId)) throw new Exception("Sender userId is missing");
 
-                if (!UserConnectionManager.Users.TryGetValue(toUserId.ToString(), out var connId))
+                if (!UserConnectionManager.Users.TryGetValue(senderUserId.ToString(), out var connId))
                     throw new Exception("Recipient not connected");
 
                 var message = new ChatViewModel
                 {
                     Id = 0,
                     SenderId = int.Parse(senderUserId),
-                    RecieverId = toUserId,
+                    RecieverId = int.Parse(toUserId),
                     MessageType = 1,
                     Content = content,
                     IsViewed = false,

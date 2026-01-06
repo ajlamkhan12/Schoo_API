@@ -32,6 +32,8 @@ namespace School_View_Models
         //public bool IsDeleted { get; set; } = false;
 
         public DateTime? CreatedOn { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedDate { get; set; }
+        public bool IsGroup { get; set; }
 
         //public DateTime? DeletedOn { get; set; }
 
