@@ -12,7 +12,7 @@ namespace School_Services
         private readonly ICommunicationService _communicationService;
         public ChatHub(ICommunicationService communicationService)
         {
-                _communicationService = communicationService;
+            _communicationService = communicationService;
         }
         public override async Task OnConnectedAsync()
         {
@@ -58,7 +58,7 @@ namespace School_Services
             };
 
             // 🔹 SAVE TO DB
-           await  _communicationService.AddChat(new ChatViewModel
+            message = await _communicationService.AddChat(new ChatViewModel
             {
                 SenderId = message.SenderId,
                 RecieverId = message.RecieverId,
@@ -87,7 +87,7 @@ namespace School_Services
         {
             try
             {
-               var groupId =  await _communicationService.AddGroup(model);
+                var groupId = await _communicationService.AddGroup(model);
                 if (groupId > 0)
                 {
                     // 🔹 4. Add ONLINE users to SignalR group
@@ -134,7 +134,7 @@ namespace School_Services
                 throw new HubException("UserId missing");
 
 
-            var result = await _communicationService.RemoveMemberFromGroupAsync(groupId,int.Parse(userId.Value));
+            var result = await _communicationService.RemoveMemberFromGroupAsync(groupId, int.Parse(userId.Value));
             await Groups.RemoveFromGroupAsync(
                 Context.ConnectionId,
                 groupId.ToString()
@@ -164,7 +164,7 @@ namespace School_Services
                 SenderId = senderId,
                 GroupId = groupId,
                 Content = content,
-                MessageType = 2,  
+                MessageType = 2,
                 IsGroup = true,
                 IsViewed = false,
                 CreatedOn = DateTime.UtcNow,
@@ -172,7 +172,7 @@ namespace School_Services
             };
 
             // 🔹 SAVE TO DB
-            await _communicationService.AddChat(new ChatViewModel
+            message = await _communicationService.AddChat(new ChatViewModel
             {
                 SenderId = senderId,
                 GroupId = groupId,
@@ -192,6 +192,7 @@ namespace School_Services
             // 🔹 SEND TO EACH ONLINE MEMBER (EXCEPT SENDER)
             foreach (var memberUserId in groupMembers)
             {
+                
                 if (memberUserId == senderId) continue;
 
                 if (UserConnectionManager.Users.TryGetValue(memberUserId.ToString(), out var connId))

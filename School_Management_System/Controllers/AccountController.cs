@@ -1,7 +1,5 @@
 ﻿using AutoMapper;
-using Azure.Core;
 using Data.Data;
-using DbModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

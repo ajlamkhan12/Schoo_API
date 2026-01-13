@@ -11,6 +11,7 @@ namespace School_Management_System.Infrastructure
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<ICommunicationService, CommunicationService>();
             services.AddScoped<IChatService, ChatService>();
+            services.AddScoped<IAIContentService, AIContentService>();
 
         }
     }

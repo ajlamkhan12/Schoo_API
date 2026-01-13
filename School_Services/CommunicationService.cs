@@ -69,7 +69,7 @@ namespace School_Services
             }
         }
 
-        public async Task<List<ChatViewModel>> AddChat(ChatViewModel model)
+        public async Task<ChatViewModel> AddChat(ChatViewModel model)
         {
             var chat = new Chat
             {
@@ -84,14 +84,15 @@ namespace School_Services
 
             _context.Chats.Add(chat);
             await _context.SaveChangesAsync();
-            if (model.GroupId > 0)
-            {
-                return await GetGroupChat(model.GroupId.Value);
-            }
-            else
-            {
-                return await GetOneOnOneChat(model.SenderId, model.RecieverId.Value);
-            }
+            return _mapper.Map<ChatViewModel>(chat);
+            //if (model.GroupId > 0)
+            //{
+            //    return await GetGroupChat(model.GroupId.Value);
+            //}
+            //else
+            //{
+            //    return await GetOneOnOneChat(model.SenderId, model.RecieverId.Value);
+            //}
         }
 
         public async Task<List<ChatViewModel>> GetOneOnOneChat(int senderId, int receiverId)
