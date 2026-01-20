@@ -9,8 +9,8 @@ namespace School_Services
         public AIContentService()
         {
             //_client = new Client(apiKey: "AIzaSyC8rO7waiubV1U8gDl5US2lsEsNbNYQ81E");
-            //_client = new Client(apiKey: "AIzaSyD25k-HY2Kmx0PerJQd4pgJKCSbTcpGCqU");
-            _client = new Client(apiKey: "AIzaSyCdb0E2kMI1Nj8Hg_JfwNiAo-KzhPKl90o");
+            _client = new Client(apiKey: "AIzaSyD25k-HY2Kmx0PerJQd4pgJKCSbTcpGCqU");
+            //_client = new Client(apiKey: "AIzaSyCdb0E2kMI1Nj8Hg_JfwNiAo-KzhPKl90o");
         }
 
         public async Task<string> GenerateContentAsync(string prompt)

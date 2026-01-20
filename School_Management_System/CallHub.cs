@@ -36,11 +36,39 @@ namespace School_Management_System
                 await Clients.Client(connId).SendAsync("IncomingCall");
         }
 
-        public async Task SendOffer(string userId, object offer)
+
+        public async Task SendOffer(string toUserId, object offer)
         {
-            if (UserConnectionManager.Users.TryGetValue(userId, out var connId))
-                await Clients.Client(connId).SendAsync("ReceiveOffer", offer);
+            var senderUserId = Context.GetHttpContext()?.Request.Query["userId"].ToString();
+
+            Console.WriteLine("SendOffer called by: " + senderUserId);
+            Console.WriteLine("Sending offer to user: " + toUserId);
+
+            if (UserConnectionManager.Users.TryGetValue(toUserId, out var connId))
+            {
+                Console.WriteLine("ConnectionId found: " + connId);
+
+                await Clients.Client(connId).SendAsync("IncomingCall", new
+                {
+                    callerId = senderUserId,
+                    offer = offer
+                });
+
+                await Clients.Client(connId).SendAsync("ReceiveOffer", new
+                {
+                    callerId = senderUserId,
+                    offer = offer
+                });
+
+                Console.WriteLine("Offer sent successfully");
+            }
+            else
+            {
+                Console.WriteLine("User NOT connected: " + toUserId);
+            }
         }
+
+
 
         public async Task SendAnswer(string userId, object answer)
         {
@@ -52,6 +80,14 @@ namespace School_Management_System
         {
             if (UserConnectionManager.Users.TryGetValue(userId, out var connId))
                 await Clients.Client(connId).SendAsync("ReceiveIceCandidate", candidate);
+        }
+
+        public async Task EndCall(string toUserId)
+        {
+            if (UserConnectionManager.Users.TryGetValue(toUserId, out var connId))
+            {
+                await Clients.Client(connId).SendAsync("CallEnded");
+            }
         }
     }
 }
