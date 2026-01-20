@@ -13,5 +13,6 @@ namespace School_IServices
         Task<int> AddGroup(GroupViewModel groupViewModel);
         Task<List<int>> GetGroupMembers(int groupId);
         Task<bool> RemoveMemberFromGroupAsync(int groupId, int userId);
+        string? GetSenderName(int id);
     }
 }

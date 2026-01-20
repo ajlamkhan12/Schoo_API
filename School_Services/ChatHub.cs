@@ -58,7 +58,7 @@ namespace School_Services
                 MessageType = 1,
                 IsGroup = false,
                 CreatedOn = DateTime.UtcNow,
-                SenderName = "Ajlam Khan"
+                SenderName = _communicationService.GetSenderName(int.Parse(senderUserId))
             };
 
             // SAVE TO DB
@@ -95,7 +95,7 @@ namespace School_Services
                 MessageType = 2,
                 IsGroup = true,
                 CreatedOn = DateTime.UtcNow,
-                SenderName = "Ajlam Khan"
+                SenderName = _communicationService.GetSenderName(int.Parse(senderUserId))
             };
 
             message = await _communicationService.AddChat(message);

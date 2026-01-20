@@ -74,7 +74,7 @@ namespace School_Services
             var chat = new Chat
             {
                 SenderId = model.SenderId,
-                RecieverId = model.RecieverId > 0 ? model.RecieverId :  null, // null or value
+                RecieverId = model.RecieverId > 0 ? model.RecieverId : null, // null or value
                 GroupId = model.GroupId > 0 ? model.GroupId : null,
                 MessageType = 1,
                 Content = model.Content,
@@ -85,14 +85,7 @@ namespace School_Services
             _context.Chats.Add(chat);
             await _context.SaveChangesAsync();
             return _mapper.Map<ChatViewModel>(chat);
-            //if (model.GroupId > 0)
-            //{
-            //    return await GetGroupChat(model.GroupId.Value);
-            //}
-            //else
-            //{
-            //    return await GetOneOnOneChat(model.SenderId, model.RecieverId.Value);
-            //}
+
         }
 
         public async Task<List<ChatViewModel>> GetOneOnOneChat(int senderId, int receiverId)
@@ -100,7 +93,7 @@ namespace School_Services
             var chats = await _context.Chats
                 .Where(c =>
                     (c.SenderId == senderId && c.RecieverId == receiverId) ||
-                    (c.SenderId == receiverId && c.RecieverId == senderId)).Include(x=>x.Sender)
+                    (c.SenderId == receiverId && c.RecieverId == senderId)).Include(x => x.Sender)
                .ToListAsync();
             if (chats.Any())
             {
@@ -127,7 +120,7 @@ namespace School_Services
         public async Task<List<ChatViewModel>> GetGroupChat(int groupId)
         {
             var groupChats = await _context.Chats
-                .Where(c => c.GroupId == groupId).Include(x=>x.Sender)
+                .Where(c => c.GroupId == groupId).Include(x => x.Sender)
                 //.OrderByDescending(c => c.CreatedOn)
                 .ToListAsync();
             if (groupChats.Any())
@@ -160,9 +153,9 @@ namespace School_Services
                     Title = groupViewModel.Title,
                     Admin = groupViewModel.Admin.ToString(),
                     CreatedBy = groupViewModel.Admin,
-                    Group_Image_Url=groupViewModel.Group_Image_Url
+                    Group_Image_Url = groupViewModel.Group_Image_Url
                 };
-                await _context.Groups.AddAsync(group);  
+                await _context.Groups.AddAsync(group);
                 await _context.SaveChangesAsync();
                 foreach (var member in groupViewModel.Members)
                 {
@@ -177,7 +170,7 @@ namespace School_Services
                     await _context.SaveChangesAsync();
                 }
                 return group.Id;
-                
+
             }
             catch (Exception ex)
             {
@@ -209,7 +202,7 @@ namespace School_Services
         {
             try
             {
-                var memberIds = await _context.GroupMembers.Where(x=>x.GroupId == groupId).Select(x => x.MemberId).ToListAsync();
+                var memberIds = await _context.GroupMembers.Where(x => x.GroupId == groupId).Select(x => x.MemberId).ToListAsync();
                 return memberIds;
             }
             catch (Exception ex)
@@ -218,6 +211,20 @@ namespace School_Services
                 throw;
             }
 
+        }
+
+        public string? GetSenderName(int id)
+        {
+            try
+            {
+                return (_context.Users.FirstOrDefault(x => x.Id == id)?.Name);
+
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
         }
 
         #region Privtae
